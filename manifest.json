@@ -1,0 +1,13 @@
+{
+  "name": "Kasir Toko ATK",
+  "short_name": "Kasir ATK",
+  "description": "Aplikasi kasir dan cetak struk 58mm",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "icons": [
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

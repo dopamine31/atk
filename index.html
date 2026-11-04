@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#1e40af">
+<meta name="description" content="Aplikasi kasir dan cetak struk 58mm untuk toko ATK">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/print.css">
+<title>Kasir Toko ATK</title>
+</head>
+<body>
+
+<header>
+  <h1 onclick="renameStore()" title="Ketuk untuk mengubah nama toko">🛒 <span id="hdrName">Toko ATK</span> <small>✏️</small></h1>
+  <button id="btnPrinter" onclick="connectPrinter()">Printer: Putus</button>
+</header>
+<div id="toast"></div>
+
+<!-- KASIR -->
+<div class="page active" id="p-kasir">
+  <div class="card">
+    <input id="search" placeholder="🔍 Cari barang..." oninput="renderProducts()">
+    <div class="grid" id="prodGrid"></div>
+    <button class="btn gray sm" style="margin-top:8px" onclick="addCustom()">+ Item manual</button>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:6px">Keranjang</h3>
+    <div id="cart"></div>
+    <div style="margin-top:10px">
+      <label>Tanggal &amp; Jam Transaksi</label>
+      <input id="trxTime" type="datetime-local" oninput="onTimeEdit()">
+      <label class="chk" style="margin-top:-2px"><input type="checkbox" id="autoTime" checked onchange="toggleAuto()"> Otomatis (waktu saat ini)</label>
+
+      <label>Nama Pelanggan (opsional)</label>
+      <input id="cust" placeholder="Umum">
+      <label>Metode Bayar</label>
+      <select id="method" onchange="calc()">
+        <option>Tunai</option><option>QRIS</option><option>Transfer</option><option>Debit</option>
+      </select>
+      <div class="row">
+        <div><label>Diskon (Rp)</label><input id="disc" type="number" inputmode="numeric" min="0" value="0" oninput="calc()"></div>
+        <div><label>Bayar (Rp)</label><input id="paid" type="number" inputmode="numeric" min="0" oninput="calc()"></div>
+      </div>
+      <button class="btn gray sm" onclick="exactPay()">Uang pas</button>
+    </div>
+    <div style="margin-top:10px">
+      <div class="tot"><span>Subtotal</span><span id="tSub">0</span></div>
+      <div class="tot"><span>Diskon</span><span id="tDisc">0</span></div>
+      <div class="tot big"><span>TOTAL</span><span id="tTotal">0</span></div>
+      <div class="tot"><span>Kembali</span><span id="tChange">0</span></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn gray" onclick="previewCurrent()">Preview</button>
+      <button class="btn green" id="btnCheckout" onclick="checkout()">💾 Simpan &amp; Cetak</button>
+    </div>
+    <button class="btn red sm" style="margin-top:8px" onclick="clearCart()">Kosongkan</button>
+  </div>
+</div>
+
+<!-- PRODUK -->
+<div class="page" id="p-produk">
+  <div class="card">
+    <h3 style="margin-bottom:8px">Tambah / Edit Produk</h3>
+    <input type="hidden" id="pId">
+    <input id="pName" placeholder="Nama barang">
+    <input id="pPrice" type="number" inputmode="numeric" min="0" placeholder="Harga jual">
+    <div class="row">
+      <button class="btn" onclick="saveProduct()">Simpan</button>
+      <button class="btn gray" onclick="resetProdForm()">Batal</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row" style="margin-bottom:6px">
+      <b id="prodCount">0 produk</b>
+      <button class="btn red sm" onclick="delAllProducts()">Hapus semua produk</button>
+    </div>
+    <div id="prodList"></div>
+  </div>
+</div>
+
+<!-- RIWAYAT -->
+<div class="page" id="p-riwayat">
+  <div class="card">
+    <div class="tot big"><span>Omzet Hari Ini</span><span id="todaySum">0</span></div>
+    <button class="btn red sm" onclick="clearHistory()">Hapus semua riwayat</button>
+  </div>
+  <div class="card" id="histList"></div>
+</div>
+
+<!-- PENGATURAN -->
+<div class="page" id="p-setting">
+  <div class="card">
+    <h3 style="margin-bottom:8px">Printer</h3>
+    <label>Metode cetak</label>
+    <select id="sMode">
+      <option value="serial">COM Port / Serial (Windows, printer Bluetooth Classic)</option>
+      <option value="ble">Bluetooth BLE (Web Bluetooth)</option>
+      <option value="browser">Dialog cetak Windows (driver printer)</option>
+    </select>
+    <label>Baud rate (khusus COM Port)</label>
+    <select id="sBaud">
+      <option>9600</option><option>19200</option><option>38400</option>
+      <option>57600</option><option>115200</option>
+    </select>
+    <small class="hint">Untuk Bluetooth Classic baud biasanya diabaikan. Jika tidak mencetak, coba 9600 lalu 115200.</small>
+    <button class="btn gray" onclick="connectPrinter()">Hubungkan Printer</button>
+    <button class="btn gray" style="margin-top:8px" onclick="testPrint()">Test Print</button>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:8px">Identitas Toko &amp; Struk</h3>
+    <label>Nama Toko</label><input id="sName">
+    <label>Alamat</label><input id="sAddr">
+    <label>No. Telp / WA</label><input id="sTel">
+    <label>Nama Kasir (tercetak di struk)</label><input id="sCashier" placeholder="Contoh: Budi">
+    <label>Pesan Terima Kasih</label><input id="sFoot">
+    <label>Catatan Kaki</label><input id="sNote">
+    <label>Lebar karakter (58mm = 32, jika terpotong coba 30)</label>
+    <input id="sWidth" type="number" min="16" max="48">
+    <label>Feed baris kosong di akhir</label>
+    <input id="sFeed" type="number" min="0" max="20">
+    <label class="chk"><input type="checkbox" id="sCut"> Printer punya auto-cutter</label>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:8px">Fitur Tambahan Struk</h3>
+    <small class="hint" style="margin-top:0">Logo, barcode, dan QR memakai perintah grafis ESC/POS. Tidak semua printer 58mm mendukungnya. Aktifkan satu per satu lalu Test Print.</small>
+
+    <label>Logo toko (hitam-putih, kontras tinggi lebih bagus)</label>
+    <img id="logoPrev" alt="logo">
+    <div class="row">
+      <button class="btn gray sm" onclick="$('logoFile').click()">Pilih Logo</button>
+      <button class="btn red sm" onclick="removeLogo()">Hapus Logo</button>
+    </div>
+    <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="uploadLogo(event)">
+
+    <label class="chk" style="margin-top:12px"><input type="checkbox" id="sBarcode"> Cetak barcode nomor transaksi (Code128)</label>
+
+    <label style="margin-top:8px">Isi QR Code (kosongkan jika tidak dipakai)</label>
+    <input id="sQR" placeholder="Contoh: https://wa.me/6281234567890">
+    <label>Tulisan di atas QR</label>
+    <input id="sQRCap" placeholder="Contoh: Scan untuk chat WhatsApp">
+
+    <button class="btn" style="margin-top:8px" onclick="saveSettings()">Simpan Pengaturan</button>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:8px">Backup Data</h3>
+    <small class="hint" style="margin-top:0">Data tersimpan di browser dan bisa hilang jika cache dihapus. Backup berkala disarankan.</small>
+    <div class="row">
+      <button class="btn gray" onclick="backup()">⬇ Backup</button>
+      <button class="btn gray" onclick="$('fileRestore').click()">⬆ Restore</button>
+    </div>
+    <input type="file" id="fileRestore" accept=".json,application/json" style="display:none" onchange="restore(event)">
+    <small class="hint" style="margin-top:10px">Kasir Toko ATK v<span id="appVersion"></span></small>
+  </div>
+</div>
+
+<nav>
+  <button class="active" onclick="go('kasir',this)">🧾<br>Kasir</button>
+  <button onclick="go('produk',this)">📦<br>Produk</button>
+  <button onclick="go('riwayat',this)">🕘<br>Riwayat</button>
+  <button onclick="go('setting',this)">⚙️<br>Setelan</button>
+</nav>
+
+<!-- PREVIEW MODAL -->
+<div class="modal" id="modal">
+  <div class="box">
+    <div id="pvWrap"><img id="pvLogo" alt=""><pre id="preview"></pre></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" onclick="printLast()">🖨️ Cetak</button>
+      <button class="btn gray" onclick="window.print()">Cetak Browser</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn gray" id="btnRaw" onclick="printRawBT()">Via RawBT</button>
+      <button class="btn red" onclick="closeModal()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- UBAH TANGGAL MODAL -->
+<div class="modal" id="dtModal">
+  <div class="box">
+    <h3 style="margin-bottom:4px">Ubah Tanggal &amp; Jam</h3>
+    <small class="hint" id="dtInfo" style="margin-top:0"></small>
+    <input type="datetime-local" id="dtInput">
+    <div class="row">
+      <button class="btn" onclick="applyDt()">Simpan</button>
+      <button class="btn gray" onclick="closeDt()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Urutan script penting: jangan diubah -->
+<script src="js/utils.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/logo.js"></script>
+<script src="js/receipt.js"></script>
+<script src="js/escpos.js"></script>
+<script src="js/printer.js"></script>
+<script src="js/printer-serial.js"></script>
+<script src="js/printer-ble.js"></script>
+<script src="js/products.js"></script>
+<script src="js/history.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

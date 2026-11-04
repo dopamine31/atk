@@ -1,0 +1,8 @@
+@media print{
+  @page{size:58mm auto;margin:0}
+  html,body{background:#fff!important;margin:0!important;padding:0!important}
+  header,nav,.page,#toast,#modal .row,#dtModal{display:none!important}
+  .modal.show{position:static;display:block;background:none;padding:0}
+  .modal .box{box-shadow:none;padding:0;max-width:none;max-height:none;overflow:visible;width:58mm;border-radius:0}
+  #pvWrap{border:0;margin:0;padding:1mm 2mm;font-size:9px;width:58mm}
+}

@@ -1,32 +1,34 @@
-# Kasir Toko ATK
+# Studio Nota 58mm
 
-Aplikasi kasir berbasis web untuk toko ATK dengan cetak struk thermal 58mm
-(ESC/POS) lewat COM Port, Bluetooth BLE, atau dialog cetak browser.
+Aplikasi kasir (POS) dan studio desain nota thermal 58mm untuk banyak toko.
 
-## Fitur
-- Kasir, diskon, metode bayar (Tunai/QRIS/Transfer/Debit)
-- Tanggal dan jam transaksi bisa diubah
-- Kelola produk, riwayat, omzet harian
-- Nama toko, alamat, kasir, catatan kaki bisa diubah
-- Logo, barcode, QR di struk (opsional)
-- Backup/restore (JSON), PWA (bisa di-install dan offline)
+## Status proyek
 
-## Struktur
-```
-index.html          halaman utama
-manifest.json, sw.js  konfigurasi PWA
-assets/icons/       ikon aplikasi
-css/                base, components, print
-js/                 satu file per fitur (lihat komentar di tiap file)
-```
+| Fase | Keterangan | Status |
+|---|---|---|
+| Fase 0 | Discovery dan spesifikasi | Menunggu konfirmasi |
+| Fase 0.5 | Uji kelayakan printer | Sedang dikerjakan |
+| Fase 1 | Persiapan (repository, dokumentasi, lingkungan kerja) | Sedang dikerjakan |
+| Fase 2 - 11 | Pembangunan aplikasi | Belum dimulai |
 
-## Menjalankan
-- Online: https://USERNAME.github.io/kasir-atk/
-- Lokal: buka `index.html` di Chrome/Edge, atau jalankan server statis apa saja.
+## Tujuan
 
-Gunakan Google Chrome atau Microsoft Edge di desktop.
+- Sistem kasir untuk banyak toko, dengan data setiap toko terpisah.
+- Editor nota dengan kustomisasi tinggi untuk kertas thermal 58mm.
+- Pencetakan ke printer thermal Bluetooth 58mm.
+- Bisa dipakai tanpa internet (offline-first), dengan backup dan sinkronisasi cloud.
+- Seluruh tampilan dalam Bahasa Indonesia.
 
-## Catatan
-- Data disimpan di browser (localStorage), tidak dikirim ke server.
-- Urutan tag `<script>` di `index.html` penting, jangan diubah.
-- Lakukan backup berkala dari menu Setelan.
+## Teknologi
+
+Teknologi final akan dikunci di Dokumen Spesifikasi v1.0. Jalur pencetakan
+printer belum diputuskan dan menunggu hasil uji printer.
+
+## Catatan keamanan
+
+Jangan pernah menyimpan kata sandi, token, atau kunci rahasia di repository ini.
+
+## Dokumentasi
+
+Dokumentasi lengkap (arsitektur, database, panduan pengguna, panduan printer,
+daftar bug, catatan perubahan) akan ditambahkan bertahap sesuai perkembangan fase.
